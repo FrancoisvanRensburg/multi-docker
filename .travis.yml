@@ -1,0 +1,23 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t hageotoko/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true hageotoko/react-test npm run test
+
+after_success:
+  - docker build -t hageotoko/multi-client ./client
+  - docker build -t hageotoko/multi-nginx ./nginx
+  - docker build -t hageotoko/multi-server ./server
+  - docker build -t hageotoko/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push hageotoko/multi-client
+  - docker push hageotoko/multi-nginx
+  - docker push hageotoko/multi-server
+  - docker push hageotoko/multi-worker
+# log in to the docker CLI
+#  take docker images and push them to docker hub
